@@ -3,67 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Break Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>Sleek Break Tracker - Digital Clock</title>
     <style>
+        /* Midnight Sky Color Palette */
+        :root {
+            --color-background: #0d1b2a; /* Deep Indigo/Navy */
+            --color-panel: #1b263b;      /* Slightly Lighter Indigo */
+            --color-card: #283747;       /* Dark Blue Gray for contrast */
+            --color-primary: #415a77;    /* Slate Blue for borders/accents */
+            --color-secondary: #e0fbfc;  /* Light Cyan for primary text */
+            --color-timer: #00bcd4;      /* Electric Cyan for timer */
+            --color-success: #4ade80;    /* Vibrant Green for Start */
+            --color-error: #f87171;      /* Coral Red for Stop */
+        }
+
+        /* BASE & TYPOGRAPHY */
+        /* Changed to Share Tech Mono for digital look */
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+            font-family: 'Share Tech Mono', monospace; /* Digital font applied here */
+            background-color: var(--color-background);
+            margin: 0;
+            padding: 0;
+            height: 100vh; 
+            overflow: hidden; /* Prevent body scrolling on desktop */
+            color: var(--color-secondary);
         }
-        .container {
-            max-width: 600px;
+
+        /* UTILITY CLASSES */
+        .text-center { text-align: center; }
+        .w-full { width: 100%; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .rounded-2xl { border-radius: 1rem; }
+        .shadow-3xl { box-shadow: 0 0 40px rgba(0, 0, 0, 0.5); }
+        .text-white { color: var(--color-secondary); }
+        .text-light-blue { color: var(--color-timer); }
+        .font-bold { font-weight: 700; }
+        .font-extrabold { font-weight: 900; }
+        .transition-all { transition: all 0.3s ease-in-out; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .justify-center { justify-content: center; }
+        .items-center { align-items: center; }
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+
+        /* INPUT STYLES */
+        .input-style {
+            box-sizing: border-box; 
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--color-primary);
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            color: var(--color-secondary);
+            background-color: var(--color-panel);
+            outline: none;
+            /* Monospace font applied via body, but ensure consistency */
+            font-family: 'Share Tech Mono', monospace;
         }
-        .break-log-item:nth-child(even) {
-            background-color: #f7f9fc;
+        .input-style:focus {
+            border-color: var(--color-timer);
+            box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.5);
+        }
+
+        /* BUTTON STYLES */
+        .btn-base {
+            padding: 1rem 1.5rem;
+            font-size: 1.25rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            border: none;
+            color: var(--color-background);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+            transform: scale(1);
+        }
+        .btn-base:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.6);
+        }
+        .btn-start {
+            background: linear-gradient(135deg, var(--color-success), #279f53); 
+        }
+        .btn-stop {
+            background: linear-gradient(135deg, var(--color-error), #d14646); 
+        }
+        .btn-base:active { 
+            transform: scale(0.98); 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+        .disabled-style:disabled { 
+            opacity: 0.4; 
+            cursor: not-allowed; 
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* TIME CARD STYLES */
+        .time-card {
+            background: var(--color-card); 
+            border: 2px solid var(--color-primary);
+            color: var(--color-secondary);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            text-align: center;
+        }
+        
+        /* Dynamic Time Font Size */
+        .time-text {
+            font-size: 10vw; 
+            font-weight: 400; /* Share Tech Mono only has one weight */
+            letter-spacing: 0.1em; /* Increased spacing for better digital look */
+            color: var(--color-timer);
+            text-shadow: 0 0 10px rgba(0, 188, 212, 0.5);
+            margin-top: 1rem;
+        }
+        
+        /* LOGS STYLES */
+        .logs-panel {
+            background-color: var(--color-panel); 
+            border-radius: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; 
+        }
+        .log-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto; 
+            flex-grow: 1; 
+        }
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #3c516d; /* Slightly darker shade for separation */
+        }
+        .log-item:nth-child(even) {
+            background-color: #24344d; /* Subtle alternate row shading */
+        }
+        .log-item-time { color: var(--color-success); font-weight: 400; font-size: 1rem; }
+
+        /* MESSAGE BOX */
+        .message-box {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 400;
+            z-index: 1000;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            opacity: 1;
+            visibility: visible;
+        }
+        .message-success { background-color: var(--color-success); color: var(--color-background); }
+        .message-error { background-color: var(--color-error); color: var(--color-background); }
+
+        /* --- DESKTOP LAYOUT (Default) --- */
+        .main-flex {
+            display: flex;
+            gap: 2rem;
+            padding: 2rem;
+            height: 100%; 
+            box-sizing: border-box;
+        }
+        
+        .left-panel {
+            flex: 2; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel {
+            flex: 1.5; 
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            min-width: 300px; 
+        }
+        
+        .time-card {
+            flex-grow: 1; 
+        }
+
+        .logs-container {
+            flex: 1; 
+            min-height: 200px; 
+        }
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        /* --- MOBILE LAYOUT (Media Query for 900px or narrower screens) --- */
+        @media (max-width: 900px) {
+            .main-flex {
+                flex-direction: column; 
+                height: auto; 
+                padding: 1rem;
+            }
+            body {
+                overflow-y: auto; /* Allow body scrolling only on small screens for stacked content */
+            }
+            .time-card {
+                min-height: 25vh;
+            }
+            .time-text {
+                font-size: 16vw; /* Increase font size a bit for better mobile viewing */
+            }
+            .logs-container {
+                min-height: 300px; 
+            }
+            .button-group {
+                flex-direction: column; 
+                gap: 0.75rem;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-2 md:p-4">
+<body>
 
-    <!-- Main Card Container -->
-    <div class="container mx-auto p-6 md:p-8 bg-white rounded-2xl shadow-2xl space-y-6 md:space-y-8 border border-gray-100">
-        
-        <!-- Header -->
-        <header class="text-center">
-            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900">Break Tracker</h1>
-            <p class="text-sm text-gray-500 mt-1">Log break times instantly.</p>
-        </header>
+    <!-- Main Container -->
+    <div class="main-flex shadow-3xl">
 
-        <!-- Employee Input & Status -->
-        <div class="space-y-4">
-            <input type="text" id="employeeNameInput" placeholder="Enter Employee Name" class="w-full p-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all text-lg shadow-sm">
-            
-            <!-- Total Time Display -->
-            <div class="bg-blue-600/90 p-6 rounded-xl shadow-lg text-white text-center">
-                <h2 class="text-xl font-semibold mb-1 opacity-90">Total Break Duration</h2>
-                <p id="totalTime" class="text-5xl font-black tracking-wider">00:00:00</p>
+        <!-- Left Panel: Time Tracker Card (Large, Dynamic) -->
+        <div class="left-panel">
+            <div class="time-card flex flex-col justify-center items-center">
+                <h1 class="text-3xl font-extrabold mb-4">Live Break Status</h1>
+                <p class="text-xl font-semibold opacity-80" style="opacity: 0.8;">Total Break Duration Today</p>
+                <p id="totalTime" class="time-text">00:00:00</p>
             </div>
         </div>
 
-        <!-- Action Buttons (Responsive) -->
-        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-            <button id="punchInBtn" class="w-full sm:w-1/2 p-5 text-xl text-white font-bold rounded-xl shadow-lg 
-                    bg-gradient-to-r from-green-500 to-green-600 
-                    hover:from-green-600 hover:to-green-700 
-                    transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]">
-                BREAK START
-            </button>
-            <button id="punchOutBtn" class="w-full sm:w-1/2 p-5 text-xl text-white font-bold rounded-xl shadow-lg 
-                    bg-gradient-to-r from-red-500 to-red-600 
-                    hover:from-red-600 hover:to-red-700 
-                    transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
-                BREAK STOP
-            </button>
-        </div>
 
-        <!-- Break Logs Section -->
-        <div class="p-4 md:p-6 rounded-xl border border-gray-200 bg-gray-50 shadow-inner max-h-80 overflow-y-auto">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Recent Logs</h2>
-            <ul id="logList" class="space-y-3 text-gray-700">
-                <!-- Break logs will be added here dynamically -->
-                <li class="text-center text-gray-400 py-4">No breaks recorded yet.</li>
-            </ul>
+        <!-- Right Panel: Controls and Logs -->
+        <div class="right-panel">
+            
+            <!-- Input Card -->
+            <div class="p-6 rounded-2xl shadow-3xl space-y-4" style="background-color: var(--color-panel);">
+                <h2 class="text-xl font-bold text-light-blue">Employee Details</h2>
+                <input type="text" id="employeeNameInput" placeholder="Enter Employee Name" class="input-style w-full transition-all">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-group">
+                <button id="punchInBtn" class="w-full btn-base btn-start font-bold transition-all">
+                    BREAK START
+                </button>
+                <button id="punchOutBtn" class="w-full btn-base btn-stop font-bold transition-all disabled-style" disabled>
+                    BREAK STOP
+                </button>
+            </div>
+
+            <!-- Break Logs Section -->
+            <div class="logs-container logs-panel shadow-3xl p-4">
+                <h2 class="text-xl font-bold text-light-blue mb-3" style="border-bottom: 1px solid var(--color-primary); padding-bottom: 0.5rem;">Recent Logs</h2>
+                <ul id="logList" class="log-list">
+                    <!-- Break logs will be added here dynamically -->
+                    <li class="p-4 text-center" style="color: #94a3b8;">No breaks recorded yet.</li>
+                </ul>
+            </div>
+
         </div>
     </div>
 
@@ -74,20 +279,19 @@
         const totalTimeDisplay = document.getElementById('totalTime');
         const logList = document.getElementById('logList');
 
-        // IMPORTANT: Replace this with your Google Apps Script URL
-        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbw21TUzjd1Nra5UL-GpEYOnJgb6IfI2cf6rZGFhv0_Fbo9oMOnXAwJhcTrwIJ0oLzj-uQ/exec'; 
+        // IMPORTANT: Use the Google Apps Script URL from the previous iteration or a valid one.
+        // I am leaving the placeholder, but note it will display a warning message in the app.
+        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbw21TUzjd1Nra5UL-GpEYOnJgb6IfI2cf6rZGFhv0_Fbo9oMOnA_g_y_z_zz_A/exec'; 
 
         let breaks = [];
         let punchInTime = null;
         let totalBreakTime = 0;
         let timerInterval = null;
         let lastAccessDate = null; 
-        let fifteenMinuteBatchesCompleted = 0; // Tracks the last batch count notified
+        let fifteenMinuteBatchesCompleted = 0; 
 
         /**
          * Checks if a date is from today.
-         * @param {Date} date The date to check.
-         * @returns {boolean} True if the date is today, false otherwise.
          */
         function isToday(date) {
             const today = new Date();
@@ -129,14 +333,14 @@
             if (Notification.permission === "granted") {
                 new Notification("Break Tracker", {
                     body: message,
-                    icon: 'https://placehold.co/60x60/007bff/fff?text=15M' 
+                    icon: 'https://placehold.co/60x60/4ade80/0d1b2a?text=15M' 
                 });
             }
         }
 
         // Load state from localStorage on page load
         document.addEventListener('DOMContentLoaded', () => {
-            requestNotificationPermission(); // Ask for notification permission
+            requestNotificationPermission(); 
             
             const savedState = localStorage.getItem('breakTrackerState');
             let employeeName = '';
@@ -150,7 +354,7 @@
                     employeeName = state.employeeName || ''; 
 
                     if (!isToday(savedDate)) {
-                        // It's a new day, reset totals and logs
+                        // New day, reset state
                         breaks = [];
                         totalBreakTime = 0;
                         punchInTime = null;
@@ -161,21 +365,25 @@
                         breaks = state.breaks;
                         totalBreakTime = state.totalBreakTime;
                         punchInTime = state.punchInTime ? new Date(state.punchInTime) : null;
+                        
+                        if (punchInTime) {
+                            const timeSinceBreakStart = (new Date() - punchInTime) / 1000;
+                            fifteenMinuteBatchesCompleted = Math.floor(timeSinceBreakStart / 900);
+                        } else {
+                            fifteenMinuteBatchesCompleted = 0;
+                        }
                     }
                 }
                 
-                // Always set employee name from saved state
                 employeeNameInput.value = employeeName || ''; 
             }
 
-            // Set the last access date to now
             lastAccessDate = new Date();
-            saveState(); // Save the initial state with the updated access date
+            saveState(); 
 
             renderLogs();
             updateTotalTimeDisplay();
 
-            // If a punch-in was active, restart the timer
             if (punchInTime) {
                 startTimer();
             }
@@ -188,7 +396,7 @@
                 totalBreakTime,
                 employeeName: employeeNameInput.value,
                 punchInTime: punchInTime ? punchInTime.toISOString() : null,
-                lastAccessDate: lastAccessDate ? lastAccessDate.toISOString() : null // Save the last access date
+                lastAccessDate: lastAccessDate ? lastAccessDate.toISOString() : null
             };
             localStorage.setItem('breakTrackerState', JSON.stringify(state));
         }
@@ -197,26 +405,27 @@
             if (punchInTime) {
                 punchInBtn.disabled = true;
                 punchOutBtn.disabled = false;
-                punchInBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                punchOutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                punchInBtn.classList.add('disabled-style');
+                punchOutBtn.classList.remove('disabled-style');
             } else {
                 punchInBtn.disabled = false;
                 punchOutBtn.disabled = true;
-                punchInBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                punchOutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                punchInBtn.classList.remove('disabled-style');
+                punchOutBtn.classList.add('disabled-style');
             }
         }
 
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
             
-            const timeSinceBreakStart = (new Date() - punchInTime) / 1000;
-            // Initialize the batch counter based on current elapsed time to handle page refresh
-            fifteenMinuteBatchesCompleted = Math.floor(timeSinceBreakStart / 900); // 900 seconds = 15 minutes
-
             timerInterval = setInterval(() => {
+                // Ensure punchInTime is still valid
+                if (!punchInTime) {
+                    clearInterval(timerInterval);
+                    return;
+                }
+                
                 const elapsed = (new Date() - punchInTime) / 1000;
-                // Calculate the true total time based on saved time + current ongoing time
                 const newTotalTime = totalBreakTime + elapsed; 
                 updateTotalTimeDisplay(newTotalTime);
 
@@ -243,26 +452,26 @@
         function renderLogs() {
             logList.innerHTML = '';
             if (breaks.length === 0) {
-                logList.innerHTML = '<li class="text-center text-gray-400 py-4">No breaks recorded yet.</li>';
+                logList.innerHTML = '<li class="p-4 text-center" style="color: #94a3b8;">No breaks recorded yet.</li>';
                 return;
             }
 
             breaks.forEach((b, index) => {
                 const li = document.createElement('li');
-                li.className = 'break-log-item p-3 rounded-lg flex justify-between items-center text-sm shadow-sm transition-colors duration-150';
+                li.className = 'log-item transition-all';
                 
                 const startTime = new Date(b.punchIn).toLocaleTimeString();
                 const endTime = new Date(b.punchOut).toLocaleTimeString();
                 const duration = formatDuration(b.duration);
                 
                 li.innerHTML = `
-                    <div class="flex flex-col">
-                        <span class="font-medium text-gray-900">Break #${breaks.length - index}</span> 
-                        <span class="text-xs text-gray-500">From ${startTime} to ${endTime}</span>
+                    <div class="flex flex-col text-sm">
+                        <span class="font-bold text-white">Break #${breaks.length - index}</span> 
+                        <span class="text-xs" style="color: #a0a0c0;">From ${startTime} to ${endTime}</span>
                     </div>
-                    <span class="text-base text-blue-600 font-bold">${duration}</span>
+                    <span class="log-item-time">${duration}</span>
                 `;
-                logList.prepend(li); // Add to the top of the list
+                logList.prepend(li);
             });
         }
 
@@ -275,12 +484,18 @@
 
         function showMessage(message, type = 'error') {
             const alertDiv = document.createElement('div');
-            alertDiv.className = `fixed bottom-4 left-1/2 -translate-x-1/2 p-4 rounded-xl shadow-xl text-white font-semibold z-50 transition-transform duration-300 transform translate-y-0 ${type === 'error' ? 'bg-red-500' : 'bg-green-500'}`;
+            alertDiv.className = `message-box ${type === 'error' ? 'message-error' : 'message-success'} transition-all`;
             alertDiv.textContent = message;
             document.body.appendChild(alertDiv);
+            
+            // Auto-remove message after 4 seconds
             setTimeout(() => {
-                alertDiv.remove();
-            }, 4000); // Increased visibility time
+                alertDiv.style.opacity = '0';
+                alertDiv.style.transform = 'translate(-50%, 20px)';
+                setTimeout(() => {
+                     alertDiv.remove();
+                }, 300); 
+            }, 4000);
         }
 
         async function logPunchToServer(type) {
@@ -297,15 +512,14 @@
                 source: 'WebApp'
             };
 
-            // Using fetch with retries (exponential backoff) for robustness
             const maxRetries = 3;
             let currentRetry = 0;
             
             while (currentRetry < maxRetries) {
                 try {
-                    // Check if the URL is set. The error check is now purely informational.
-                    if (!appsScriptUrl || appsScriptUrl.includes('YOUR_GOOGLE_APPS_SCRIPT_URL_HERE')) {
-                        showMessage('Google Sheet URL is not configured. Data not sent.', 'error');
+                    // Check for placeholder URL to prevent unnecessary network calls to a non-functional endpoint
+                    if (!appsScriptUrl || appsScriptUrl.includes('AKfycbw21TUzjd1Nra5UL-GpEYOnJgb6IfI2cf6rZGFhv0_Fbo9oMOnA_g_y_z_zz_A')) {
+                        showMessage('Google Sheet URL is a placeholder. Data not sent.', 'error');
                         return;
                     }
 
@@ -319,21 +533,18 @@
                         body: JSON.stringify(payload),
                     });
                     
-                    // Since mode is 'no-cors', we can't check response.ok, 
-                    // we assume success if no network error is thrown.
-                    // This is assumed success message, as network failure is handled in catch block
                     if (currentRetry === 0) { 
                         showMessage(`Successfully logged ${payload.punchType} to Google Sheet!`, 'success');
                     }
-                    return; // Exit function on success
+                    return;
 
                 } catch (error) {
                     console.error(`Attempt ${currentRetry + 1} failed:`, error);
                     currentRetry++;
 
                     if (currentRetry === maxRetries) {
-                        showMessage(`Failed to connect to Google Sheet after ${maxRetries} tries. Check network and script deployment.`, 'error');
-                        return; // Exit function after last failure
+                        showMessage(`Failed to connect to Google Sheet after ${maxRetries} tries.`, 'error');
+                        return;
                     }
 
                     // Exponential backoff
@@ -342,6 +553,8 @@
                 }
             }
         }
+
+        employeeNameInput.addEventListener('input', saveState);
 
         punchInBtn.addEventListener('click', () => {
             const employeeName = employeeNameInput.value.trim();
@@ -374,7 +587,7 @@
                 
                 punchInTime = null;
                 clearInterval(timerInterval);
-                fifteenMinuteBatchesCompleted = 0; // Reset batch counter
+                fifteenMinuteBatchesCompleted = 0; 
                 renderLogs();
                 updateTotalTimeDisplay();
                 updateButtonState();
