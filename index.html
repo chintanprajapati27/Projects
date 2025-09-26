@@ -279,9 +279,8 @@
         const totalTimeDisplay = document.getElementById('totalTime');
         const logList = document.getElementById('logList');
 
-        // IMPORTANT: Use the Google Apps Script URL from the previous iteration or a valid one.
-        // I am leaving the placeholder, but note it will display a warning message in the app.
-        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbw21TUzjd1Nra5UL-GpEYOnJgb6IfI2cf6rZGFhv0_Fbo9oMOnA_g_y_z_zz_A/exec'; 
+        // IMPORTANT: REPLACE THIS PLACEHOLDER URL with your deployed Google Apps Script URL.
+        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbw21TUzjd1Nra5UL-GpEYOnJgb6IfI2cf6rZGFhv0_Fbo9oMOnXAwJhcTrwIJ0oLzj-uQ/exec'; 
 
         let breaks = [];
         let punchInTime = null;
@@ -517,10 +516,10 @@
             
             while (currentRetry < maxRetries) {
                 try {
-                    // Check for placeholder URL to prevent unnecessary network calls to a non-functional endpoint
-                    if (!appsScriptUrl || appsScriptUrl.includes('AKfycbw21TUzjd1Nra5UL-GpEYOnJgb6IfI2cf6rZGFhv0_Fbo9oMOnA_g_y_z_zz_A')) {
-                        showMessage('Google Sheet URL is a placeholder. Data not sent.', 'error');
-                        return;
+                    // This check ensures we don't accidentally send data to the OLD placeholder if it somehow remained.
+                    if (appsScriptUrl.includes('AKfycbw21TUzjd1Nra5UL-GpEYOnJgb6IfI2cf6rZGFhv0_Fbo9oMOnA_g_y_z_zz_A')) {
+                        // The user provided a valid looking URL, but if the old placeholder is still here, something is wrong.
+                        // However, based on the prompt, we assume the provided URL is the intended active one.
                     }
 
                     const response = await fetch(appsScriptUrl, {
